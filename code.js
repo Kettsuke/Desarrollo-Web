@@ -13,21 +13,22 @@ let asientoActual = null;
 let asientoNuevo = null;
 let ocupados = new Set(['A-03', 'B-05', 'C-04', 'C-05', 'D-01', 'E-07', 'F-02']);
 let stream = null;
+let fotoTomada = false;
 
+// Solo se muestra una etapa a la vez
 function show(id) {
-  // Sin sesion solo se ve el login
   if (id !== 'login' && !logueado) id = 'login';
 
   document.querySelectorAll('.screen').forEach((s) => {
     s.hidden = s.id !== id;
   });
-  document.querySelectorAll('nav button[data-go]').forEach((b) => {
-    b.classList.toggle('current', b.dataset.go === id);
-  });
-  $('nav').hidden = !logueado;
 
+  if (id !== 'grafica') detenerCamara();
   if (id === 'asientos') renderMapa();
-  if (id === 'grafica') dibujarGrafica();
+  if (id === 'grafica') {
+    dibujarGrafica();
+    iniciarCamara();
+  }
   window.scrollTo(0, 0);
 }
 
@@ -39,11 +40,6 @@ function mostrar(el, texto) {
 function formato(n) {
   return '$ ' + Math.round(n).toLocaleString('es-CO');
 }
-
-// Navegacion
-document.querySelectorAll('nav button[data-go]').forEach((b) => {
-  b.addEventListener('click', () => show(b.dataset.go));
-});
 
 // Login
 $('btnLogin').addEventListener('click', () => {
@@ -58,17 +54,11 @@ $('btnLogin').addEventListener('click', () => {
   show('panel');
 });
 
-$('btnSalir').addEventListener('click', () => {
-  logueado = false;
-  $('user').value = '';
-  $('pass').value = '';
-  show('login');
-});
-
 // Registro y calculo
 $('btnCalcular').addEventListener('click', () => {
   const boletas = parseInt($('boletas').value, 10);
   $('resultado').hidden = true;
+  $('btnSiguiente1').hidden = true;
 
   if (!$('pelicula').value.trim() || !(boletas > 0)) {
     mostrar($('panelMsg'), 'Complete la película y una cantidad de boletas mayor a 0.');
@@ -97,6 +87,7 @@ $('btnClave').addEventListener('click', () => {
     $('pelicula').value = '';
     $('boletas').value = '';
     $('resultado').hidden = true;
+    $('btnSiguiente1').hidden = false;
     return;
   }
 
@@ -104,6 +95,8 @@ $('btnClave').addEventListener('click', () => {
   show('login');
   mostrar($('loginMsg'), 'Clave incorrecta. Vuelva a ingresar.');
 });
+
+$('btnSiguiente1').addEventListener('click', () => show('asientos'));
 
 // Cambio de asiento
 function renderMapa() {
@@ -166,6 +159,8 @@ $('modoNuevo').addEventListener('click', () => cambiarModo('nuevo'));
 cambiarModo('actual');
 
 $('btnAsiento').addEventListener('click', () => {
+  $('btnSiguiente2').hidden = true;
+
   if (!asientoActual || !asientoNuevo) {
     mostrar($('asientoMsg'), 'Seleccione el asiento actual y el nuevo en el mapa.');
     $('tablaAsiento').hidden = true;
@@ -185,7 +180,10 @@ $('btnAsiento').addEventListener('click', () => {
   mostrar($('asientoMsg'), enRango
     ? 'Cambio dentro del horario: se aplica recargo.'
     : 'Cambio fuera del horario: sin recargo.');
+  $('btnSiguiente2').hidden = false;
 });
+
+$('btnSiguiente2').addEventListener('click', () => show('grafica'));
 
 // Grafica de lineas
 function dibujarGrafica() {
@@ -209,74 +207,76 @@ function dibujarGrafica() {
   ).join('');
 }
 
-// Camara y foto
-async function activarCamara() {
-  const video = $('video');
+// Camara: se pide al entrar a la etapa de foto
+async function iniciarCamara() {
+  if (stream || fotoTomada) return;
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    $('estadoCam').textContent = 'Este navegador no permite usar la cámara. Se usará imagen simulada.';
+    $('estadoCam').textContent = 'Este navegador no permite usar la cámara.';
     return;
   }
 
+  $('estadoCam').textContent = 'Solicitando acceso a la cámara...';
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-    video.hidden = false;
-    $('estadoCam').textContent = 'Cámara activa.';
-    $('btnCamara').textContent = 'Cámara activa';
+    $('video').srcObject = stream;
+    $('video').hidden = false;
+    $('estadoCam').textContent = 'Cámara lista. Tome la foto.';
   } catch (e) {
-    $('estadoCam').textContent = 'No se pudo usar la cámara. Se usará imagen simulada.';
+    $('estadoCam').textContent = 'Sin acceso a la cámara. Permítalo en el navegador y recargue la página.';
   }
 }
 
-function dibujarSimulada(ctx, w, h) {
-  const fondo = ctx.createLinearGradient(0, 0, 0, h);
-  fondo.addColorStop(0, '#555');
-  fondo.addColorStop(1, '#151515');
-  ctx.fillStyle = fondo;
-  ctx.fillRect(0, 0, w, h);
-
-  ctx.fillStyle = '#bbb';
-  ctx.beginPath();
-  ctx.arc(w / 2, h * 0.4, h * 0.16, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(w / 2, h * 0.95, w * 0.28, h * 0.42, 0, Math.PI, 0);
-  ctx.fill();
-
-  ctx.fillStyle = '#ddd';
-  ctx.font = 'bold 20px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('IMAGEN SIMULADA', w / 2, h - 18);
+function detenerCamara() {
+  if (!stream) return;
+  stream.getTracks().forEach((t) => t.stop());
+  stream = null;
+  $('video').srcObject = null;
+  $('video').hidden = true;
 }
 
-$('btnCamara').addEventListener('click', activarCamara);
-
-$('btnFoto').addEventListener('click', () => {
+function tomarFoto() {
   const video = $('video');
-  const canvas = $('canvas');
-  const ctx = canvas.getContext('2d');
-  const usaCamara = stream && video.videoWidth > 0;
-
-  canvas.width = usaCamara ? video.videoWidth : 640;
-  canvas.height = usaCamara ? video.videoHeight : 480;
-
-  ctx.filter = 'grayscale(100%)';
-  if (usaCamara) {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  } else {
-    dibujarSimulada(ctx, canvas.width, canvas.height);
+  if (!stream || video.videoWidth === 0) {
+    $('estadoCam').textContent = 'La cámara todavía no está lista.';
+    return;
   }
+
+  const canvas = $('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.filter = 'grayscale(100%)';
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   ctx.filter = 'none';
 
   const flash = $('flash');
   flash.classList.add('on');
   setTimeout(() => flash.classList.remove('on'), 150);
 
-  const hora = new Date().toLocaleString('es-CO');
   $('foto').src = canvas.toDataURL('image/jpeg', 0.9);
   $('foto').hidden = false;
-  $('fotoHora').textContent = 'Foto ' + (usaCamara ? '' : 'simulada ') + 'tomada: ' + hora;
+  $('fotoHora').textContent = 'Foto tomada: ' + new Date().toLocaleString('es-CO');
+  $('estadoCam').textContent = 'Foto guardada.';
+
+  fotoTomada = true;
+  detenerCamara();
+  $('btnFoto').textContent = 'Terminar';
+}
+
+function terminar() {
+  fotoTomada = false;
+  logueado = false;
+  $('foto').hidden = true;
+  $('foto').src = '';
+  $('fotoHora').textContent = '';
+  $('btnFoto').textContent = 'Tomar foto';
+  show('login');
+}
+
+$('btnFoto').addEventListener('click', () => {
+  if (fotoTomada) terminar();
+  else tomarFoto();
 });
 
 show('login');

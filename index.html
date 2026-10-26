@@ -12,12 +12,6 @@
   <div class="marquee">
     <h1>Cine Cali</h1>
   </div>
-  <nav id="nav" hidden>
-    <button type="button" data-go="panel">Registro</button>
-    <button type="button" data-go="asientos">Cambio de asiento</button>
-    <button type="button" data-go="grafica">Gráfica y cámara</button>
-    <button type="button" id="btnSalir" class="ghost">Salir</button>
-  </nav>
 </header>
 
 <main>
@@ -70,6 +64,8 @@
         <p class="receipt-label">Recaudación total</p>
         <p id="totalTxt" class="receipt-total">$ 0</p>
       </div>
+
+      <button id="btnSiguiente1" type="button" class="btn primary" hidden>Siguiente: cambio de asiento</button>
     </div>
   </section>
 
@@ -105,6 +101,8 @@
         <tr><td>Recargo 5%</td><td id="vRecargo">$ 0</td></tr>
         <tr class="total-row"><td>Total</td><td id="vTotal">$ 12.000</td></tr>
       </table>
+
+      <button id="btnSiguiente2" type="button" class="btn primary" hidden>Siguiente: cámara de control</button>
     </div>
   </section>
 
@@ -123,16 +121,13 @@
         </svg>
       </div>
 
-      <h3 class="sub-titulo">Control del operador</h3>
+      <h3 class="sub-titulo">Foto de control del operador</h3>
       <div class="cam">
         <video id="video" autoplay playsinline muted hidden></video>
         <img id="foto" alt="Foto de control del operador" hidden>
       </div>
-      <p id="estadoCam" class="sub">Cámara sin activar.</p>
-      <div class="row">
-        <button id="btnCamara" type="button" class="btn">Activar cámara</button>
-        <button id="btnFoto" type="button" class="btn primary">Tomar foto</button>
-      </div>
+      <p id="estadoCam" class="sub">Solicitando acceso a la cámara...</p>
+      <button id="btnFoto" type="button" class="btn primary">Tomar foto</button>
       <p id="fotoHora" class="sub"></p>
       <canvas id="canvas" hidden></canvas>
     </div>

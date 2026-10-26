@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cine Caso A - Mockup</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Cine Caso A: mockup (solo grises)</h1>
+  <nav>
+    <button data-go="login">1. Login</button>
+    <button data-go="panel">2. Registro y cálculo</button>
+    <button data-go="asientos">3. Cambio de asiento</button>
+    <button data-go="grafica">4. Gráfica y foto</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- 1. LOGIN -->
+  <section id="login" class="screen">
+    <div class="card">
+      <h2>Acceso al sistema</h2>
+      <p class="sub">Ingrese con sus credenciales de taquilla.</p>
+      <label for="user">Usuario</label>
+      <input id="user" type="text" placeholder="Usuario">
+      <label for="pass">Contraseña</label>
+      <input id="pass" type="password" placeholder="Contraseña">
+      <button id="btnLogin" class="btn">Ingresar</button>
+      <div id="loginMsg" class="msg"></div>
+    </div>
+  </section>
+
+  <!-- 2. PANEL: REGISTRO Y CALCULO -->
+  <section id="panel" class="screen">
+    <div class="card">
+      <h2>Registro de función</h2>
+      <p class="sub">Complete los datos de la función y calcule la recaudación.</p>
+
+      <label for="pelicula">Nombre de la película</label>
+      <input id="pelicula" type="text" placeholder="Ej: Dune Parte Tres">
+
+      <div class="row">
+        <div>
+          <label for="sala">Sala</label>
+          <select id="sala">
+            <option>Sala 1</option>
+            <option>Sala 2</option>
+            <option>Sala 3</option>
+          </select>
+        </div>
+        <div>
+          <label for="boletas">Boletas vendidas</label>
+          <input id="boletas" type="number" min="1" placeholder="0">
+        </div>
+      </div>
+
+      <label for="precio">Precio por boleta (COP)</label>
+      <input id="precio" type="text" value="12000" readonly>
+
+      <button id="btnCalcular" class="btn">Calcular recaudación</button>
+      <div id="panelMsg" class="msg"></div>
+
+      <div id="resultado" class="result">
+        <div class="label-small">Recaudación total</div>
+        <div id="totalTxt" class="big">$ 0</div>
+        <div class="label-small" style="margin-top:10px;">Boletas × precio</div>
+      </div>
+
+      <div id="reloj" class="clock-wrap">
+        <div class="clock"></div>
+        <p>Calculando...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. CAMBIO DE ASIENTO -->
+  <section id="asientos" class="screen">
+    <div class="card">
+      <h2>Cambio de asiento</h2>
+      <p class="sub">Recargo del 5% si el cambio ocurre entre 3:00 p.m. y 6:00 p.m.</p>
+
+      <div class="row">
+        <div>
+          <label for="asientoActual">Asiento actual</label>
+          <input id="asientoActual" type="text" placeholder="Ej: F-07">
+        </div>
+        <div>
+          <label for="asientoNuevo">Asiento nuevo</label>
+          <input id="asientoNuevo" type="text" placeholder="Ej: C-12">
+        </div>
+      </div>
+
+      <label for="hora">Hora del cambio</label>
+      <input id="hora" type="time" value="16:30">
+
+      <button id="btnAsiento" class="btn">Aplicar cambio</button>
+
+      <table class="table" id="tablaAsiento" style="display:none;">
+        <tr><td>Valor base de la boleta</td><td id="vBase">$ 12.000</td></tr>
+        <tr><td>Recargo (5%)</td><td id="vRecargo">$ 0</td></tr>
+        <tr><td>Total a cobrar</td><td id="vTotal">$ 12.000</td></tr>
+      </table>
+      <div id="asientoMsg" class="msg"></div>
+    </div>
+  </section>
+
+  <!-- 4. GRAFICA Y FOTO -->
+  <section id="grafica" class="screen">
+    <div class="card">
+      <h2>Gráfica de recaudación</h2>
+      <p class="sub">Cada recaudación calculada se agrega al arreglo y se dibuja aquí.</p>
+
+      <div class="chart-box">
+        <svg id="chart" viewBox="0 0 600 260" width="100%" role="img" aria-label="Gráfica de líneas de recaudación">
+          <line x1="50" y1="20" x2="50" y2="220" stroke="#666"/>
+          <line x1="50" y1="220" x2="580" y2="220" stroke="#666"/>
+          <polyline id="linea" fill="none" stroke="#111" stroke-width="3" points=""/>
+          <g id="puntos"></g>
+        </svg>
+      </div>
+
+      <div class="photo" id="foto">Vista de cámara (placeholder)</div>
+      <button id="btnFoto" class="btn ghost">Capturar foto de control</button>
+    </div>
+  </section>
+
+  <p class="note">Mockup estático para revisión. Los datos son de ejemplo.</p>
+</main>
+
+<!-- Dialogo de clave de seguridad -->
+<div id="overlayClave" class="overlay">
+  <div class="dialog">
+    <h3>Clave de seguridad</h3>
+    <p>Escriba la palabra clave para registrar otra función.</p>
+    <label for="clave">Palabra clave</label>
+    <input id="clave" type="text" placeholder="Escriba CINE">
+    <button id="btnClave" class="btn">Confirmar</button>
+  </div>
+</div>
+
+<script src="code.js"></script>
+</body>
+</html>

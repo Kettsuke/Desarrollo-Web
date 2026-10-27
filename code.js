@@ -14,6 +14,52 @@ let asientoNuevo = null;
 let ocupados = new Set(['A-03', 'B-05', 'C-04', 'C-05', 'D-01', 'E-07', 'F-02']);
 let stream = null;
 let fotoTomada = false;
+let sesion = nuevaSesion();
+
+function nuevaSesion() {
+  return { registros: [], cambios: [], foto: null };
+}
+
+function generarTxt(datos) {
+  const lineas = [
+    'CINE CALI - REPORTE DE TAQUILLA',
+    'Generado: ' + new Date().toLocaleString('es-CO'),
+    '',
+    'REGISTROS DE FUNCION',
+  ];
+
+  if (datos.registros.length === 0) lineas.push('Sin registros.');
+  datos.registros.forEach((r, i) => {
+    lineas.push((i + 1) + '. Pelicula: ' + r.pelicula + ' | ' + r.sala +
+      ' | Boletas: ' + r.boletas + ' | Precio: ' + formato(PRECIO) + ' | Total: ' + formato(r.total));
+  });
+
+  lineas.push('', 'CAMBIO DE ASIENTO');
+  if (datos.cambios.length === 0) lineas.push('Sin cambios.');
+  datos.cambios.forEach((c, i) => {
+    lineas.push((i + 1) + '. Asiento actual: ' + c.actual + ' | Nuevo: ' + c.nuevo +
+      ' | Hora: ' + c.hora + ' | Recargo: ' + formato(c.recargo) + ' | Total: ' + formato(c.total));
+  });
+
+  const totalRecaudado = datos.registros.reduce((suma, r) => suma + r.total, 0);
+  lineas.push('', 'FOTO DE CONTROL: ' + (datos.foto || 'No tomada'));
+  lineas.push('TOTAL RECAUDADO: ' + formato(totalRecaudado));
+
+  return lineas.join('\r\n');
+}
+
+function descargarTxt(texto, nombre) {
+  // ﻿ hace que Notepad de Windows muestre bien las tildes
+  const blob = new Blob(['﻿' + texto], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 // Solo se muestra una etapa a la vez
 function show(id) {
@@ -73,6 +119,12 @@ $('btnCalcular').addEventListener('click', () => {
     $('totalTxt').textContent = formato(total);
     $('resultado').hidden = false;
     recaudaciones.push(total);
+    sesion.registros.push({
+      pelicula: $('pelicula').value.trim(),
+      sala: $('sala').value,
+      boletas,
+      total,
+    });
     $('clave').value = '';
     $('overlayClave').hidden = false;
     $('clave').focus();
@@ -181,6 +233,13 @@ $('btnAsiento').addEventListener('click', () => {
   mostrar($('asientoMsg'), enRango
     ? 'Cambio dentro del horario: se aplica recargo.'
     : 'Cambio fuera del horario: sin recargo.');
+  sesion.cambios.push({
+    actual: asientoActual,
+    nuevo: asientoNuevo,
+    hora: $('hora').value,
+    recargo,
+    total: PRECIO + recargo,
+  });
   $('btnSiguiente2').hidden = false;
 });
 
@@ -257,7 +316,8 @@ function tomarFoto() {
 
   $('foto').src = canvas.toDataURL('image/jpeg', 0.9);
   $('foto').hidden = false;
-  $('fotoHora').textContent = 'Foto tomada: ' + new Date().toLocaleString('es-CO');
+  sesion.foto = new Date().toLocaleString('es-CO');
+  $('fotoHora').textContent = 'Foto tomada: ' + sesion.foto;
   $('estadoCam').textContent = 'Foto guardada.';
 
   fotoTomada = true;
@@ -266,6 +326,13 @@ function tomarFoto() {
 }
 
 function terminar() {
+  const ahora = new Date();
+  const dosDigitos = (n) => String(n).padStart(2, '0');
+  const nombre = 'reporte_taquilla_' + ahora.getFullYear() + dosDigitos(ahora.getMonth() + 1) +
+    dosDigitos(ahora.getDate()) + '_' + dosDigitos(ahora.getHours()) + dosDigitos(ahora.getMinutes()) + '.txt';
+  descargarTxt(generarTxt(sesion), nombre);
+  sesion = nuevaSesion();
+
   fotoTomada = false;
   logueado = false;
   $('foto').hidden = true;

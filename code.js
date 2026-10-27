@@ -91,9 +91,10 @@ $('btnClave').addEventListener('click', () => {
     return;
   }
 
+  // alert() bloquea hasta que el usuario acepta, asi que el login aparece despues
+  alert('Clave incorrecta. Vuelva a ingresar.');
   logueado = false;
   show('login');
-  mostrar($('loginMsg'), 'Clave incorrecta. Vuelva a ingresar.');
 });
 
 $('btnSiguiente1').addEventListener('click', () => show('asientos'));

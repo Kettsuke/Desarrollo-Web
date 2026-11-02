@@ -22,7 +22,7 @@ function nuevaSesion() {
 
 function generarTxt(datos) {
   const lineas = [
-    'CINE CALI - REPORTE DE TAQUILLA',
+    'CINE LDB - REPORTE DE TAQUILLA',
     'Generado: ' + new Date().toLocaleString('es-CO'),
     '',
     'REGISTROS DE FUNCION',
@@ -89,7 +89,7 @@ function formato(n) {
 
 // Login
 $('btnLogin').addEventListener('click', () => {
-  const ok = $('user').value === 'Cinecali' && $('pass').value === 'Estrenos';
+  const ok = $('user').value === 'Cineldb' && $('pass').value === 'Estrenos';
   if (!ok) {
     mostrar($('loginMsg'), 'Usuario o contraseña incorrectos.');
     return;
@@ -182,6 +182,7 @@ function renderMapa() {
 function elegirAsiento(id) {
   if (modo === 'actual') {
     asientoActual = id;
+    if (asientoNuevo === id) asientoNuevo = null;
   } else {
     if (ocupados.has(id) || id === asientoActual) return;
     asientoNuevo = id;
@@ -261,8 +262,8 @@ function dibujarGrafica() {
   }));
 
   $('linea').setAttribute('points', pts.map((p) => p.x + ',' + p.y).join(' '));
-  $('puntos').innerHTML = pts.map((p) =>
-    '<circle cx="' + p.x + '" cy="' + p.y + '" r="4"/>' +
+  $('puntos').innerHTML = pts.map((p, i) =>
+    '<circle cx="' + p.x + '" cy="' + p.y + '" r="5"><title>Función ' + (i + 1) + ': ' + formato(p.v) + '</title></circle>' +
     '<text x="' + p.x + '" y="' + (p.y - 10) + '" text-anchor="middle">' + Math.round(p.v / 1000) + 'k</text>'
   ).join('');
 }

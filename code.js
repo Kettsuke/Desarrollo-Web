@@ -89,7 +89,7 @@ function formato(n) {
 
 // Login
 $('btnLogin').addEventListener('click', () => {
-  const ok = $('user').value === 'Cineldb' && $('pass').value === 'Estrenos';
+  const ok = $('user').value === 'Cinecali' && $('pass').value === 'Estrenos';
   if (!ok) {
     mostrar($('loginMsg'), 'Usuario o contraseña incorrectos.');
     return;
